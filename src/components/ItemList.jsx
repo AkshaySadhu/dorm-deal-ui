@@ -6,6 +6,8 @@ function ItemList({ items, onEdit, onRefresh }) {
     const [sortOption, setSortOption] = useState('default');
     const [hoveredItem, setHoveredItem] = useState(null);
     const [searchQuery, setSearchQuery] = useState('');
+    const [priceRange, setPriceRange] = useState({ min: '', max: '' });
+    const [showPriceFilter, setShowPriceFilter] = useState(false);
     const objectUrlsRef = useRef([]);
     
     // Cleanup function for blob URLs to prevent memory leaks
@@ -35,15 +37,19 @@ function ItemList({ items, onEdit, onRefresh }) {
         }
     };
 
-    // Filter items by selected category and search query
+    // Filter items by selected category, search query, and price range
     const filteredItems = items.filter(item => {
         const matchesCategory = selectedCategory === 'all' || item.category === selectedCategory;
+        
         const matchesSearch = !searchQuery || 
             item.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
             item.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
             item.category.toLowerCase().includes(searchQuery.toLowerCase());
         
-        return matchesCategory && matchesSearch;
+        const matchesMinPrice = priceRange.min === '' || item.price >= parseFloat(priceRange.min);
+        const matchesMaxPrice = priceRange.max === '' || item.price <= parseFloat(priceRange.max);
+        
+        return matchesCategory && matchesSearch && matchesMinPrice && matchesMaxPrice;
     });
 
     // Sort items based on the selected option
@@ -126,6 +132,56 @@ function ItemList({ items, onEdit, onRefresh }) {
                             <option value="title-desc">Title: Z-A</option>
                         </select>
                     </div>
+                    
+                    <div className="filter-group price-filter-group">
+                        <button 
+                            className={`price-filter-toggle ${showPriceFilter ? 'active' : ''}`}
+                            onClick={() => setShowPriceFilter(!showPriceFilter)}
+                        >
+                            Price Range {showPriceFilter ? '▲' : '▼'}
+                        </button>
+                        
+                        {showPriceFilter && (
+                            <div className="price-filter-dropdown">
+                                <div className="price-inputs">
+                                    <div className="price-input-field">
+                                        <label htmlFor="min-price">Min $:</label>
+                                        <input
+                                            id="min-price"
+                                            type="number"
+                                            placeholder="Min"
+                                            value={priceRange.min}
+                                            onChange={(e) => setPriceRange({...priceRange, min: e.target.value})}
+                                            min="0"
+                                            step="0.01"
+                                        />
+                                    </div>
+                                    <div className="price-input-field">
+                                        <label htmlFor="max-price">Max $:</label>
+                                        <input
+                                            id="max-price"
+                                            type="number"
+                                            placeholder="Max"
+                                            value={priceRange.max}
+                                            onChange={(e) => setPriceRange({...priceRange, max: e.target.value})}
+                                            min="0"
+                                            step="0.01"
+                                        />
+                                    </div>
+                                </div>
+                                <div className="price-filter-actions">
+                                    <button 
+                                        onClick={() => {
+                                            setPriceRange({ min: '', max: '' });
+                                        }}
+                                        className="clear-price-btn"
+                                    >
+                                        Clear
+                                    </button>
+                                </div>
+                            </div>
+                        )}
+                    </div>
                 </div>
             </div>
             
@@ -137,6 +193,9 @@ function ItemList({ items, onEdit, onRefresh }) {
                         Showing {sortedItems.length} {sortedItems.length === 1 ? 'item' : 'items'}
                         {selectedCategory !== 'all' ? ` in "${selectedCategory}"` : ''}
                         {searchQuery ? ` matching "${searchQuery}"` : ''}
+                        {priceRange.min && priceRange.max ? ` priced ${priceRange.min}-${priceRange.max}` : 
+                         priceRange.min ? ` priced from ${priceRange.min}` : 
+                         priceRange.max ? ` priced up to ${priceRange.max}` : ''}
                     </span>
                 )}
             </div>
@@ -145,21 +204,22 @@ function ItemList({ items, onEdit, onRefresh }) {
                 <div className="no-items">
                     <div className="no-items-icon">🔍</div>
                     <p>
-                        {searchQuery 
-                            ? `No items found matching "${searchQuery}"`
+                        {searchQuery || priceRange.min || priceRange.max
+                            ? `No items found matching your filters`
                             : selectedCategory !== 'all'
                                 ? `No items found in the "${selectedCategory}" category`
                                 : 'No items found. Add some items to get started!'}
                     </p>
-                    {(searchQuery || selectedCategory !== 'all') && (
+                    {(searchQuery || selectedCategory !== 'all' || priceRange.min || priceRange.max) && (
                         <button 
                             className="reset-filters-btn"
                             onClick={() => {
                                 setSearchQuery('');
                                 setSelectedCategory('all');
+                                setPriceRange({ min: '', max: '' });
                             }}
                         >
-                            Reset Filters
+                            Reset All Filters
                         </button>
                     )}
                 </div>
