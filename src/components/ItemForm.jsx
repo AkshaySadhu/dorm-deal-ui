@@ -67,42 +67,48 @@ function ItemForm({ onRefresh, editingItem, onCancelEdit }) {
 
         if (editingItem) {
             // Update existing item using PUT /items/:id
-            fetch(`http://localhost:3000/items/${editingItem.id}`, {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(itemData)
-            })
-                .then(res => {
-                    if (!res.ok) {
-                        throw new Error(`Server responded with status: ${res.status}`);
-                    }
-                    return res.json();
-                })
-                .then(data => {
-                    console.log("Item updated: ", data);
-                    // Show success message
-                    setSuccessMessage("Item updated successfully!");
-                    setShowSuccess(true);
-                    
-                    // Hide success message after 3 seconds
-                    setTimeout(() => {
-                        setShowSuccess(false);
-                    }, 3000);
-                    
-                    onRefresh();
-                    onCancelEdit();
-                })
-                .catch(err => {
-                    console.error("Error updating item: ", err);
-                    // Show error message
-                    setErrorMessage(`Failed to update item: ${err.message}`);
-                    setShowError(true);
-                    
-                    // Hide error message after 5 seconds
-                    setTimeout(() => {
-                        setShowError(false);
-                    }, 5000);
-                });
+            // Update existing item using PUT /items/:id
+fetch(`http://localhost:3000/items/${editingItem.id}`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(itemData)
+})
+    .then(res => {
+        if (!res.ok) {
+            throw new Error(`Server responded with status: ${res.status}`);
+        }
+        return res.json();
+    })
+    .then(data => {
+        console.log("Item updated: ", data);
+        
+        // Show success message
+        setSuccessMessage("Item updated successfully!");
+        setShowSuccess(true);
+        
+        // Call onRefresh to update the list in the background
+        onRefresh();
+        
+        // Delay the redirect to allow the user to see the success message
+        setTimeout(() => {
+            // Hide the message and redirect
+            setShowSuccess(false);
+            onCancelEdit();
+        }, 2000); // 2 seconds delay before redirect
+    })
+    .catch(err => {
+        console.error("Error updating item: ", err);
+        // Show error message
+        setErrorMessage(`Failed to update item: ${err.message}`);
+        setShowError(true);
+        
+        // Hide error message after 5 seconds
+        setTimeout(() => {
+            setShowError(false);
+        }, 5000);
+    });
+
+            
         } else {
             // Create new item using POST /items
             fetch("http://localhost:3000/items", {
