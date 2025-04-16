@@ -8,6 +8,7 @@ function ItemForm({ onRefresh, editingItem, onCancelEdit }) {
     const [price, setPrice] = useState('');
     const [category, setCategory] = useState('');
     const [image, setImage] = useState(null);
+    const [previewUrl, setPreviewUrl] = useState('');
 
     useEffect(() => {
         if (editingItem) {
@@ -16,12 +17,20 @@ function ItemForm({ onRefresh, editingItem, onCancelEdit }) {
             setPrice(editingItem.price);
             setCategory(editingItem.category);
             setImage(null);
+            
+            // If editing an item with an existing image, create preview
+            if (editingItem.image) {
+                setPreviewUrl(`data:image/jpeg;base64,${editingItem.image}`);
+            } else {
+                setPreviewUrl('');
+            }
         } else {
             setTitle('');
             setDescription('');
             setPrice('');
             setCategory('');
             setImage(null);
+            setPreviewUrl('');
         }
     }, [editingItem]);
 
@@ -39,6 +48,12 @@ function ItemForm({ onRefresh, editingItem, onCancelEdit }) {
         if (image) {
             const base64Image = await convertToBase64(image);
             itemData.image = base64Image;
+        } else if (editingItem && editingItem.image && !previewUrl) {
+            // If editing and image was removed
+            itemData.image = null;
+        } else if (editingItem && editingItem.image) {
+            // Keep the existing image if not changed
+            itemData.image = editingItem.image;
         }
 
         if (editingItem) {
@@ -66,6 +81,13 @@ function ItemForm({ onRefresh, editingItem, onCancelEdit }) {
                 .then(data => {
                     console.log("Item created: ", data);
                     onRefresh();
+                    // Clear the form
+                    setTitle('');
+                    setDescription('');
+                    setPrice('');
+                    setCategory('');
+                    setImage(null);
+                    setPreviewUrl('');
                 })
                 .catch(err => console.error("Error creating item: ", err));
         }
@@ -73,8 +95,21 @@ function ItemForm({ onRefresh, editingItem, onCancelEdit }) {
 
     const handleFileChange = (e) => {
         if (e.target.files && e.target.files[0]) {
-            setImage(e.target.files[0]);
+            const selectedFile = e.target.files[0];
+            setImage(selectedFile);
+            
+            // Create preview URL for the selected image
+            const reader = new FileReader();
+            reader.onload = () => {
+                setPreviewUrl(reader.result);
+            };
+            reader.readAsDataURL(selectedFile);
         }
+    };
+
+    const handleRemoveImage = () => {
+        setImage(null);
+        setPreviewUrl('');
     };
 
     // Helper function to convert a File to a base64 string.
@@ -82,7 +117,11 @@ function ItemForm({ onRefresh, editingItem, onCancelEdit }) {
         return new Promise((resolve, reject) => {
             const reader = new FileReader();
             reader.readAsDataURL(file);
-            reader.onload = () => resolve(reader.result.split(',')[1]); // remove the data URI prefix
+            reader.onload = () => {
+                // Extract just the base64 data (without the data URI prefix)
+                const base64String = reader.result.split(',')[1];
+                resolve(base64String);
+            };
             reader.onerror = error => reject(error);
         });
     };
@@ -91,52 +130,88 @@ function ItemForm({ onRefresh, editingItem, onCancelEdit }) {
         <form onSubmit={handleSubmit} className="item-form">
             <h2>{editingItem ? "Update Item" : "Add New Item"}</h2>
             <div>
-                <label>Title:</label>
+                <label htmlFor="title">Title:</label>
                 <input
+                    id="title"
                     type="text"
                     value={title}
                     onChange={e => setTitle(e.target.value)}
                     required
+                    placeholder="Enter item title"
                 />
             </div>
             <div>
-                <label>Description:</label>
+                <label htmlFor="description">Description:</label>
                 <textarea
+                    id="description"
                     value={description}
                     onChange={e => setDescription(e.target.value)}
                     required
+                    placeholder="Enter item description"
                 ></textarea>
             </div>
             <div>
-                <label>Price:</label>
+                <label htmlFor="price">Price ($):</label>
                 <input
+                    id="price"
                     type="number"
                     value={price}
                     onChange={e => setPrice(e.target.value)}
                     required
                     step="0.01"
+                    min="0"
+                    placeholder="0.00"
                 />
             </div>
             <div>
-                <label>Category:</label>
+                <label htmlFor="category">Category:</label>
                 <input
+                    id="category"
                     type="text"
                     value={category}
                     onChange={e => setCategory(e.target.value)}
                     required
+                    placeholder="Enter item category"
                 />
             </div>
             <div>
-                <label>Image:</label>
+                <label htmlFor="image">Image:</label>
                 <input
+                    id="image"
                     type="file"
                     accept="image/*"
                     onChange={handleFileChange}
                 />
+                {previewUrl && (
+                    <div className="image-preview">
+                        <img 
+                            src={previewUrl} 
+                            alt="Preview" 
+                            style={{ maxWidth: '200px', maxHeight: '200px', marginTop: '10px' }} 
+                        />
+                        <button 
+                            type="button" 
+                            onClick={handleRemoveImage}
+                            className="remove-image-btn"
+                        >
+                            Remove Image
+                        </button>
+                    </div>
+                )}
             </div>
             <div className="form-buttons">
-                <button type="submit">{editingItem ? "Update Item" : "Add Item"}</button>
-                {editingItem && <button type="button" onClick={onCancelEdit}>Cancel</button>}
+                <button type="submit">
+                    {editingItem ? "Update Item" : "Add Item"}
+                </button>
+                {editingItem && (
+                    <button 
+                        type="button" 
+                        onClick={onCancelEdit}
+                        className="cancel-btn"
+                    >
+                        Cancel
+                    </button>
+                )}
             </div>
         </form>
     );

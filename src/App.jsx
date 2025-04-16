@@ -1,6 +1,7 @@
 // src/App.jsx
 import React from "react";
 import { useState, useEffect } from 'react';
+import NavigationBar from './components/NavigationBar';
 import ItemForm from './components/ItemForm';
 import ItemList from './components/ItemList';
 import './App.css';
@@ -8,8 +9,8 @@ import './App.css';
 function App() {
     const [items, setItems] = useState([]);
     const [editingItem, setEditingItem] = useState(null);
-    // Used to trigger refreshes of the item list.
     const [refresh, setRefresh] = useState(false);
+    const [currentPage, setCurrentPage] = useState('home');
 
     useEffect(() => {
         // Fetch items from your API
@@ -25,25 +26,57 @@ function App() {
 
     const handleEdit = (item) => {
         setEditingItem(item);
-    }
+        setCurrentPage('add');
+    };
 
     const handleCancelEdit = () => {
         setEditingItem(null);
-    }
+    };
+
+    const handleNavigate = (page) => {
+        setCurrentPage(page);
+        if (page === 'home') {
+            handleRefresh(); // Refresh the items when navigating to home
+            setEditingItem(null); // Clear any editing state
+        }
+    };
+
+    // Render the appropriate content based on the current page
+    const renderContent = () => {
+        switch (currentPage) {
+            case 'home':
+                return (
+                    <ItemList
+                        items={items}
+                        onEdit={handleEdit}
+                        onRefresh={handleRefresh}
+                    />
+                );
+            case 'add':
+                return (
+                    <ItemForm
+                        onRefresh={handleRefresh}
+                        editingItem={editingItem}
+                        onCancelEdit={() => {
+                            handleCancelEdit();
+                            setCurrentPage('home');
+                        }}
+                    />
+                );
+            case 'login':
+                // You would implement a login component here
+                return <div className="login-placeholder">Login Form (not implemented)</div>;
+            default:
+                return <ItemList items={items} onEdit={handleEdit} onRefresh={handleRefresh} />;
+        }
+    };
 
     return (
         <div className="App">
-            <h1>Marketplace</h1>
-            <ItemForm
-                onRefresh={handleRefresh}
-                editingItem={editingItem}
-                onCancelEdit={handleCancelEdit}
-            />
-            <ItemList
-                items={items}
-                onEdit={handleEdit}
-                onRefresh={handleRefresh}
-            />
+            <NavigationBar onNavigate={handleNavigate} />
+            <div className="content-container">
+                {renderContent()}
+            </div>
         </div>
     );
 }
