@@ -9,6 +9,10 @@ function ItemForm({ onRefresh, editingItem, onCancelEdit }) {
     const [category, setCategory] = useState('');
     const [image, setImage] = useState(null);
     const [previewUrl, setPreviewUrl] = useState('');
+    const [showSuccess, setShowSuccess] = useState(false);
+    const [successMessage, setSuccessMessage] = useState('');
+    const [showError, setShowError] = useState(false);
+    const [errorMessage, setErrorMessage] = useState('');
 
     useEffect(() => {
         if (editingItem) {
@@ -36,6 +40,11 @@ function ItemForm({ onRefresh, editingItem, onCancelEdit }) {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+        
+        // Clear any existing messages
+        setShowSuccess(false);
+        setShowError(false);
+        
         // Build item data; parse price as float.
         const itemData = {
             title,
@@ -63,13 +72,37 @@ function ItemForm({ onRefresh, editingItem, onCancelEdit }) {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(itemData)
             })
-                .then(res => res.json())
+                .then(res => {
+                    if (!res.ok) {
+                        throw new Error(`Server responded with status: ${res.status}`);
+                    }
+                    return res.json();
+                })
                 .then(data => {
                     console.log("Item updated: ", data);
+                    // Show success message
+                    setSuccessMessage("Item updated successfully!");
+                    setShowSuccess(true);
+                    
+                    // Hide success message after 3 seconds
+                    setTimeout(() => {
+                        setShowSuccess(false);
+                    }, 3000);
+                    
                     onRefresh();
                     onCancelEdit();
                 })
-                .catch(err => console.error("Error updating item: ", err));
+                .catch(err => {
+                    console.error("Error updating item: ", err);
+                    // Show error message
+                    setErrorMessage(`Failed to update item: ${err.message}`);
+                    setShowError(true);
+                    
+                    // Hide error message after 5 seconds
+                    setTimeout(() => {
+                        setShowError(false);
+                    }, 5000);
+                });
         } else {
             // Create new item using POST /items
             fetch("http://localhost:3000/items", {
@@ -77,10 +110,26 @@ function ItemForm({ onRefresh, editingItem, onCancelEdit }) {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(itemData)
             })
-                .then(res => res.json())
+                .then(res => {
+                    if (!res.ok) {
+                        throw new Error(`Server responded with status: ${res.status}`);
+                    }
+                    return res.json();
+                })
                 .then(data => {
                     console.log("Item created: ", data);
+                    
+                    // Show success message
+                    setSuccessMessage("Item added successfully!");
+                    setShowSuccess(true);
+                    
+                    // Hide success message after 3 seconds
+                    setTimeout(() => {
+                        setShowSuccess(false);
+                    }, 3000);
+                    
                     onRefresh();
+                    
                     // Clear the form
                     setTitle('');
                     setDescription('');
@@ -89,7 +138,18 @@ function ItemForm({ onRefresh, editingItem, onCancelEdit }) {
                     setImage(null);
                     setPreviewUrl('');
                 })
-                .catch(err => console.error("Error creating item: ", err));
+                .catch(err => {
+                    console.error("Error creating item: ", err);
+                    
+                    // Show error message
+                    setErrorMessage(`Failed to add item: ${err.message}`);
+                    setShowError(true);
+                    
+                    // Hide error message after 5 seconds
+                    setTimeout(() => {
+                        setShowError(false);
+                    }, 5000);
+                });
         }
     };
 
@@ -129,6 +189,23 @@ function ItemForm({ onRefresh, editingItem, onCancelEdit }) {
     return (
         <form onSubmit={handleSubmit} className="item-form">
             <h2>{editingItem ? "Update Item" : "Add New Item"}</h2>
+            
+            {/* Success Alert */}
+            {showSuccess && (
+                <div className="alert success-alert">
+                    <span className="alert-icon">✓</span>
+                    {successMessage}
+                </div>
+            )}
+            
+            {/* Error Alert */}
+            {showError && (
+                <div className="alert error-alert">
+                    <span className="alert-icon">⚠</span>
+                    {errorMessage}
+                </div>
+            )}
+            
             <div>
                 <label htmlFor="title">Title:</label>
                 <input
