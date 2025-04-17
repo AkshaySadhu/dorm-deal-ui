@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import ChatWindow from "./ChatWindow"; // Import the ChatWindow component
 
-function ItemList({ items, onEdit, onRefresh }) {
+function ItemList({ items, onEdit, onRefresh, onStartChat }) { // Add onStartChat prop
     const [selectedCategory, setSelectedCategory] = useState('all');
     const [sortOption, setSortOption] = useState('default');
     const [hoveredItem, setHoveredItem] = useState(null);
@@ -44,8 +44,15 @@ function ItemList({ items, onEdit, onRefresh }) {
     
     // Handle opening chat with seller
     const handleOpenChat = (item) => {
-        setSelectedItem(item);
-        setShowChat(true);
+        // Check if we should use our own chat or App's chat system
+        if (onStartChat) {
+            // Use the chat system from App component
+            onStartChat(item);
+        } else {
+            // Use local chat
+            setSelectedItem(item);
+            setShowChat(true);
+        }
     };
     
     // Handle closing chat
@@ -280,10 +287,10 @@ function ItemList({ items, onEdit, onRefresh }) {
                                 <div className="item-details">
                                     <h3 className="item-title">{item.title}</h3>
                                     {item.username && (
-                                            <div className="item-uploader">
-                                                <span className="uploader-label">Uploaded by:</span> {item.username}
-                                            </div>
-                                        )}
+                                        <div className="item-uploader">
+                                            <span className="uploader-label">Listed by:</span> {item.username}
+                                        </div>
+                                    )}
                                     <div className="item-price-container">
                                         <span className="price-label">Price:</span>
                                         <span className="item-price">${item.price.toFixed(2)}</span>
@@ -298,7 +305,7 @@ function ItemList({ items, onEdit, onRefresh }) {
                                         className="connect-seller-btn"
                                         onClick={() => handleOpenChat(item)}
                                     >
-                                        Connect to Seller
+                                        Chat with Seller
                                     </button>
                                     <div className="action-buttons">
                                         <button 
@@ -323,10 +330,10 @@ function ItemList({ items, onEdit, onRefresh }) {
                 </ul>
             )}
             
-            {/* Chat window */}
-            {showChat && selectedItem && (
+            {/* Local Chat window (only show if onStartChat is not provided) */}
+            {!onStartChat && showChat && selectedItem && (
                 <ChatWindow 
-                    seller="Item Owner" 
+                    seller={selectedItem.username || "Item Owner"}
                     item={selectedItem} 
                     onClose={handleCloseChat} 
                 />

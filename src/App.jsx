@@ -191,7 +191,7 @@ useEffect(() => {
             );
         case 'chats':
             // Reset unread count when navigating to chats
-            setUnreadChats(0);
+            // setUnreadChats(0);
             return (
                 <ChatTab 
                     chats={chats}
