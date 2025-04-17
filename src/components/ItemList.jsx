@@ -1,5 +1,6 @@
 // src/components/ItemList.jsx
 import React, { useState, useEffect, useRef } from "react";
+import ChatWindow from "./ChatWindow"; // Import the ChatWindow component
 
 function ItemList({ items, onEdit, onRefresh }) {
     const [selectedCategory, setSelectedCategory] = useState('all');
@@ -9,6 +10,10 @@ function ItemList({ items, onEdit, onRefresh }) {
     const [priceRange, setPriceRange] = useState({ min: '', max: '' });
     const [showPriceFilter, setShowPriceFilter] = useState(false);
     const objectUrlsRef = useRef([]);
+    
+    // Add chat state
+    const [showChat, setShowChat] = useState(false);
+    const [selectedItem, setSelectedItem] = useState(null);
     
     // Cleanup function for blob URLs to prevent memory leaks
     useEffect(() => {
@@ -35,6 +40,18 @@ function ItemList({ items, onEdit, onRefresh }) {
                 })
                 .catch(err => console.error("Error deleting item: ", err));
         }
+    };
+    
+    // Handle opening chat with seller
+    const handleOpenChat = (item) => {
+        setSelectedItem(item);
+        setShowChat(true);
+    };
+    
+    // Handle closing chat
+    const handleCloseChat = () => {
+        setShowChat(false);
+        setSelectedItem(null);
     };
 
     // Filter items by selected category, search query, and price range
@@ -262,6 +279,11 @@ function ItemList({ items, onEdit, onRefresh }) {
                                 
                                 <div className="item-details">
                                     <h3 className="item-title">{item.title}</h3>
+                                    {item.username && (
+                                            <div className="item-uploader">
+                                                <span className="uploader-label">Uploaded by:</span> {item.username}
+                                            </div>
+                                        )}
                                     <div className="item-price-container">
                                         <span className="price-label">Price:</span>
                                         <span className="item-price">${item.price.toFixed(2)}</span>
@@ -273,10 +295,10 @@ function ItemList({ items, onEdit, onRefresh }) {
                                 
                                 <div className={`item-actions ${hoveredItem === item.id ? 'visible' : ''}`}>
                                     <button 
-                                        className="view-details-btn"
-                                        onClick={() => alert(`Viewing details for ${item.title}`)}
+                                        className="connect-seller-btn"
+                                        onClick={() => handleOpenChat(item)}
                                     >
-                                        View Details
+                                        Connect to Seller
                                     </button>
                                     <div className="action-buttons">
                                         <button 
@@ -299,6 +321,15 @@ function ItemList({ items, onEdit, onRefresh }) {
                         </li>
                     ))}
                 </ul>
+            )}
+            
+            {/* Chat window */}
+            {showChat && selectedItem && (
+                <ChatWindow 
+                    seller="Item Owner" 
+                    item={selectedItem} 
+                    onClose={handleCloseChat} 
+                />
             )}
         </div>
     );

@@ -1,18 +1,8 @@
 // src/components/NavigationBar.jsx
-import React from "react";
-import { useState } from 'react';
+import React, { useState } from 'react';
 import './NavigationBar.css';
 
-function NavigationBar({ onNavigate }) {
-    const [isLoggedIn, setIsLoggedIn] = useState(true); // For demonstration purposes
-    
-    const handleLogout = () => {
-        // Add actual logout logic here
-        setIsLoggedIn(false);
-        alert("Logged out successfully!");
-        // You would typically redirect to login page here
-    };
-    
+function NavigationBar({ onNavigate, unreadChats = 0, onLogout, username }) {
     return (
         <nav className="navbar">
             <div className="navbar-brand">
@@ -31,21 +21,22 @@ function NavigationBar({ onNavigate }) {
                 >
                     Add Item
                 </button>
-                {isLoggedIn ? (
+                <button 
+                    className="nav-link chat-nav-link" 
+                    onClick={() => onNavigate('chats')}
+                >
+                    Chats
+                    {unreadChats > 0 && <span className="chat-badge">{unreadChats}</span>}
+                </button>
+                <div className="user-menu">
+                    <span className="username">{username}</span>
                     <button 
                         className="nav-link logout" 
-                        onClick={handleLogout}
+                        onClick={onLogout}
                     >
                         Logout
                     </button>
-                ) : (
-                    <button 
-                        className="nav-link" 
-                        onClick={() => onNavigate('login')}
-                    >
-                        Login
-                    </button>
-                )}
+                </div>
             </div>
         </nav>
     );

@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react';
 import React from "react";
 
-function ItemForm({ onRefresh, editingItem, onCancelEdit }) {
+function ItemForm({ onRefresh, editingItem, onCancelEdit, user }) {
     const [title, setTitle] = useState('');
     const [description, setDescription] = useState('');
     const [price, setPrice] = useState('');
@@ -13,6 +13,8 @@ function ItemForm({ onRefresh, editingItem, onCancelEdit }) {
     const [successMessage, setSuccessMessage] = useState('');
     const [showError, setShowError] = useState(false);
     const [errorMessage, setErrorMessage] = useState('');
+    const [owner, setOwner] = useState(user?.id || '');
+
 
     useEffect(() => {
         if (editingItem) {
@@ -21,6 +23,7 @@ function ItemForm({ onRefresh, editingItem, onCancelEdit }) {
             setPrice(editingItem.price);
             setCategory(editingItem.category);
             setImage(null);
+            setOwner(editingItem.userId || user?.id || '');
             
             // If editing an item with an existing image, create preview
             if (editingItem.image) {
@@ -35,8 +38,9 @@ function ItemForm({ onRefresh, editingItem, onCancelEdit }) {
             setCategory('');
             setImage(null);
             setPreviewUrl('');
+            setOwner(user?.id || '');
         }
-    }, [editingItem]);
+    }, [editingItem, user]);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -50,7 +54,9 @@ function ItemForm({ onRefresh, editingItem, onCancelEdit }) {
             title,
             description,
             price: parseFloat(price),
-            category
+            category,
+            userId: user?.id || '',           // <- owner (internal)
+            username: user?.username || ''
         };
 
         // If an image file is selected, convert it to a base64 string.
