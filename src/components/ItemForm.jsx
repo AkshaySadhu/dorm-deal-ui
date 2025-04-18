@@ -43,11 +43,14 @@ function ItemForm({ onRefresh, editingItem, onCancelEdit, user }) {
     }, [editingItem, user]);
 
     const handleSubmit = async (e) => {
+
+        
         e.preventDefault();
         
         // Clear any existing messages
         setShowSuccess(false);
         setShowError(false);
+        
         
         // Build item data; parse price as float.
         const itemData = {
@@ -58,7 +61,8 @@ function ItemForm({ onRefresh, editingItem, onCancelEdit, user }) {
             userId: user?.id || '',           // <- owner (internal)
             username: user?.username || ''
         };
-
+        console.log("Item data being submitted:", itemData);
+        
         // If an image file is selected, convert it to a base64 string.
         if (image) {
             const base64Image = await convertToBase64(image);

@@ -25,6 +25,15 @@ function ItemList({ items, onEdit, onRefresh, onStartChat }) { // Add onStartCha
         };
     }, []);
 
+    // Add this inside your ItemList component, near the other useEffect hooks
+useEffect(() => {
+    console.log("Items with usernames:", items.map(item => ({ 
+        id: item.id, 
+        title: item.title, 
+        username: item.username 
+    })));
+}, [items]);
+
     // Extract unique categories from items
     const categories = ['all', ...new Set(items.map(item => item.category))];
 

@@ -8,7 +8,6 @@ import './App.css';
 import ChatTab from './components/ChatTab';
 import LoginPage from './components/LoginPage';
 
-
 function App() {
     const [items, setItems] = useState([]);
     const [editingItem, setEditingItem] = useState(null);
@@ -17,42 +16,42 @@ function App() {
     const [chats, setChats] = useState([]);
     const [unreadChats, setUnreadChats] = useState(0);
     const [user, setUser] = useState(null);
+    const [isLoading, setIsLoading] = useState(true);
 
-    // TEMPORARY: Set to true to bypass login (remember to set back to false before production)
-const SKIP_LOGIN_TEMPORARILY = true;
+    // Remove the temporary bypass login code
+    // const SKIP_LOGIN_TEMPORARILY = true;
 
-// In your App.jsx, inside the App component
-useEffect(() => {
-    /* 
-     * TEMPORARY: Auto-login with test user for development purposes
-     * This creates a default user without going through the login screen
-     * TODO: Remove or comment out before production deployment
-     */
-    const testUser = {
-      username: "TestUser",
-      id: "test123",
-      role: "user", // or "admin" if you need admin privileges
-      email: "test@example.com"
-      // Add any other user properties your app needs
-    };
-    
-    // Set the user in state
-    setUser(testUser);
-    
-    // You can also store in localStorage if your app uses it for persistence
-    localStorage.setItem('user', JSON.stringify(testUser));
-    
-    // Log that we're using a test user (optional)
-    console.log("Using test user for development");
-  }, []); // Empty dependency array means this runs once on component mount
-  
+    // Remove the temporary auto-login effect
+    // useEffect(() => {
+    //   // Auto-login with test user code removed
+    // }, []);
+
+    // Initial user check from localStorage
     useEffect(() => {
-        // Fetch items from your API
-        fetch("http://localhost:3000/items")
-            .then(res => res.json())
-            .then(data => setItems(data))
-            .catch(err => console.error("Error fetching items: ", err));
-    }, [refresh]);
+        // Check if user is saved in localStorage
+        const savedUser = localStorage.getItem('user');
+        if (savedUser) {
+            setUser(JSON.parse(savedUser));
+        } else {
+            // If no saved user, redirect to login page
+            setCurrentPage('login');
+        }
+        setIsLoading(false);
+    }, []);
+  
+    // Fetch items when user is authenticated or refresh is triggered
+    useEffect(() => {
+        if (user) {
+            // Fetch items from your API
+            fetch("http://localhost:3000/items")
+                .then(res => res.json())
+                .then(data => {
+                    console.log("Items received from server:", data);
+                    setItems(data);
+                })
+                .catch(err => console.error("Error fetching items: ", err));
+        }
+    }, [refresh, user]);
 
     const handleRefresh = () => {
         setRefresh(prev => !prev);
@@ -67,7 +66,6 @@ useEffect(() => {
         setEditingItem(null);
     };
 
-    
     const handleNavigate = (page) => {
         setCurrentPage(page);
         if (page === 'home') {
@@ -148,77 +146,90 @@ useEffect(() => {
         setCurrentPage('login');
     };
 
-    useEffect(() => {
-        // Check if user is saved in localStorage
-        const savedUser = localStorage.getItem('user');
-        if (savedUser) {
-            setUser(JSON.parse(savedUser));
-        } else {
-            // If no saved user, redirect to login page
-            setCurrentPage('login');
-        }
-    }, []);
-
     const renderContent = () => {
-    // If user is not logged in and not on login page, redirect to login
-    if (!user && currentPage !== 'login') {
-        return <LoginPage onLogin={handleLogin} />;
-    }
-    
-    switch (currentPage) {
-        case 'login':
+        // Show loading indicator while checking auth status
+        if (isLoading) {
+            return <div className="loading-container">
+                <div className="loading-spinner"></div>
+                <p>Loading...</p>
+            </div>;
+        }
+        
+        // If user is not logged in, show login page regardless of current page
+        if (!user) {
             return <LoginPage onLogin={handleLogin} />;
-        case 'home':
-            return (
-                <ItemList
+        }
+        
+        // User is logged in, show content based on current page
+        switch (currentPage) {
+            case 'login':
+                // If somehow on login page but already logged in, redirect to home
+                return <ItemList
                     items={items}
                     onEdit={handleEdit}
                     onRefresh={handleRefresh}
                     onStartChat={handleStartChat}
-                />
-            );
-        case 'add':
-            return (
-                <ItemForm
-                    onRefresh={handleRefresh}
-                    editingItem={editingItem}
-                    onCancelEdit={() => {
-                        handleCancelEdit();
-                        setCurrentPage('home');
-                    }}
                     user={user}
-                />
-            );
-        case 'chats':
-            // Reset unread count when navigating to chats
-            // setUnreadChats(0);
-            return (
-                <ChatTab 
-                    chats={chats}
-                    onCloseChat={handleCloseChat}
-                    onChatMessage={handleChatMessage}
-                />
-            );
-        default:
-            return <ItemList items={items} onEdit={handleEdit} onRefresh={handleRefresh} onStartChat={handleStartChat} />;
-    }
-};
+                />;
+            case 'home':
+                return (
+                    <ItemList
+                        items={items}
+                        onEdit={handleEdit}
+                        onRefresh={handleRefresh}
+                        onStartChat={handleStartChat}
+                        user={user}
+                    />
+                );
+            case 'add':
+                return (
+                    <ItemForm
+                        onRefresh={handleRefresh}
+                        editingItem={editingItem}
+                        onCancelEdit={() => {
+                            handleCancelEdit();
+                            setCurrentPage('home');
+                        }}
+                        user={user}
+                    />
+                );
+            case 'chats':
+                // Reset unread count when navigating to chats
+                // setUnreadChats(0);
+                return (
+                    <ChatTab 
+                        chats={chats}
+                        onCloseChat={handleCloseChat}
+                        onChatMessage={handleChatMessage}
+                        user={user}
+                    />
+                );
+            default:
+                return <ItemList 
+                    items={items} 
+                    onEdit={handleEdit} 
+                    onRefresh={handleRefresh} 
+                    onStartChat={handleStartChat}
+                    user={user}
+                />;
+        }
+    };
 
-return (
-    <div className="App">
-        {user && (
-            <NavigationBar 
-                onNavigate={handleNavigate} 
-                unreadChats={unreadChats}
-                onLogout={handleLogout}
-                username={user.username}
-            />
-        )}
-        <div className="content-container">
-            {renderContent()}
+    return (
+        <div className="App">
+            {user && (
+                <NavigationBar 
+                    onNavigate={handleNavigate} 
+                    unreadChats={unreadChats}
+                    onLogout={handleLogout}
+                    username={user.username}
+                />
+            )}
+            <div className="content-container">
+                {renderContent()}
+            </div>
         </div>
-    </div>
-);
+    );
 }
 
 export default App;
