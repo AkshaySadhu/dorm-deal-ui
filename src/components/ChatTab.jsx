@@ -21,10 +21,10 @@ function ChatTab({ user }) {
     setLoading(true);
     setError(null);
     try {
-      const response = await fetch('http://localhost:3000/chat/messages', {
-      });
+      let response = await fetch(`http://localhost:3000/chat/messages?username=${encodeURIComponent(user.username)}`);
 
       const data = await response.json();
+      console.log(data);
       setMessages(data);
     } catch (err) {
       console.error('Error fetching messages:', err);
