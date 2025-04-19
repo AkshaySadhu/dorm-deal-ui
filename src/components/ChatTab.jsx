@@ -21,17 +21,9 @@ function ChatTab({ user }) {
     setLoading(true);
     setError(null);
     try {
-      const credentials = btoa(`${user.username}:${user.password}`);
       const response = await fetch('http://localhost:3000/chat/messages', {
-        headers: {
-          'Authorization': `Basic ${credentials}`
-        }
       });
-      
-      if (!response.ok) {
-        throw new Error('Failed to fetch messages');
-      }
-      
+
       const data = await response.json();
       setMessages(data);
     } catch (err) {
@@ -46,18 +38,14 @@ function ChatTab({ user }) {
     if (!newMessage.trim() || !receiver.trim()) {
       return;
     }
-    
     setLoading(true);
     setError(null);
     try {
       const credentials = btoa(`${user.username}:${user.password}`);
       const response = await fetch('http://localhost:3000/chat/send', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Basic ${credentials}`
-        },
         body: JSON.stringify({
+          username: user.username,
           receiver: receiver,
           message: newMessage
         })
@@ -66,10 +54,8 @@ function ChatTab({ user }) {
       if (!response.ok) {
         throw new Error('Failed to send message');
       }
-      
       // Clear the input
       setNewMessage('');
-      
       // Refresh messages
       fetchMessages();
     } catch (err) {
@@ -91,10 +77,6 @@ function ChatTab({ user }) {
       const credentials = btoa(`${user.username}:${user.password}`);
       const response = await fetch('http://localhost:3000/chat/reply', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Basic ${credentials}`
-        },
         body: JSON.stringify({
           messageIndex: messageIndex,
           reply: replyText
