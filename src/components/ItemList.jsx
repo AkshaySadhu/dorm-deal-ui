@@ -321,7 +321,7 @@ useEffect(() => {
                                 </div>
                                 <div className={`item-actions ${hoveredItem === item.id ? 'visible' : ''}`}>
     {/* Only show chat button if the current user is not the seller */}
-    {user.username && item.username && user.username !== item.username && (
+    {user.username && item.owner && user.username !== item.owner && (
         <button 
             className="connect-seller-btn"
             onClick={() => handleOpenChat(item)}
@@ -330,20 +330,22 @@ useEffect(() => {
         </button>
     )}
     <div className="action-buttons">
+    {user.username && item.owner && user.username === item.owner && (
         <button 
             className="edit-btn" 
             onClick={() => onEdit(item)}
             title="Edit"
         >
             ✏️
-        </button>
+        </button>)}
+        {user.username && item.owner && user.username === item.owner && (
         <button 
             className="delete-btn" 
             onClick={() => handleDelete(item.id)}
             title="Delete"
         >
             🗑️
-        </button>
+        </button>)}
     </div>
 </div>
                             </div>
