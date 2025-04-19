@@ -44,6 +44,9 @@ function ChatTab({ user }) {
       const credentials = btoa(`${user.username}:${user.password}`);
       const response = await fetch('http://localhost:3000/chat/send', {
         method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
         body: JSON.stringify({
           username: user.username,
           receiver: receiver,
