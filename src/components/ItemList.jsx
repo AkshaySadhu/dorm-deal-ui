@@ -51,18 +51,28 @@ useEffect(() => {
         }
     };
     
-    // Handle opening chat with seller
-    const handleOpenChat = (item) => {
-        // Check if we should use our own chat or App's chat system
-        if (onStartChat) {
-            // Use the chat system from App component
-            onStartChat(item);
-        } else {
-            // Use local chat
-            setSelectedItem(item);
-            setShowChat(true);
-        }
-    };
+  const handleOpenChat = (item) => {
+    // Check for either username or owner property
+    console.log("Full item object:", JSON.stringify(item, null, 2));
+  
+    const sellerUsername = item.username || item.owner;
+
+    console.log("Seller username found:", sellerUsername);
+    
+    if (!sellerUsername) {
+      console.error("Can't start chat: Item has no seller username");
+      return;
+    }
+    
+    if (onStartChat) {
+      // Use the App's chat system to start a chat with the seller
+      onStartChat({...item, username: sellerUsername});
+    } else {
+      // Local chat fallback
+      setSelectedItem({...item, username: sellerUsername});
+      setShowChat(true);
+    }
+  };
     
     // Handle closing chat
     const handleCloseChat = () => {

@@ -17,6 +17,7 @@ function App() {
     const [unreadChats, setUnreadChats] = useState(0);
     const [user, setUser] = useState(null);
     const [isLoading, setIsLoading] = useState(true);
+    const [credentials, setCredentials] = useState(null);
 
     // Remove the temporary bypass login code
     // const SKIP_LOGIN_TEMPORARILY = true;
@@ -74,38 +75,36 @@ function App() {
         }
     };
 
-    const handleStartChat = (item) => {
-        // Check if chat with this item already exists
-        const existingChat = chats.find(chat => chat.item.id === item.id);
+    const handleStartChat = async (item) => {
+        const sellerName = item.username || item.owner;
         
-        if (existingChat) {
-            // If chat exists, navigate to chat tab and highlight this chat
-            setCurrentPage('chats');
-            return existingChat.id;
-        } else {
-            // Create a new chat
-            const newChat = {
-                id: Date.now().toString(), // Simple way to generate unique ID
-                item: item,
-                messages: [{
-                    sender: 'system',
-                    text: `You are now connected with the seller of "${item.title}".`,
-                    timestamp: new Date()
-                }]
-            };
-            
-            // Add new chat to chats array
-            setChats(prevChats => [...prevChats, newChat]);
-            
-            // Increment unread count
-            setUnreadChats(prev => prev + 1);
-            
-            // Navigate to chat tab
-            setCurrentPage('chats');
-            
-            return newChat.id;
+        if (!sellerName) {
+          console.error("Can't start chat: Item has no seller username");
+          return;
         }
-    };
+        
+        setCurrentPage('chats');
+        
+        try {
+          const response = await fetch('http://localhost:3000/chat/send', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Basic ${credentials}`
+            },
+            body: JSON.stringify({
+              receiver: sellerName,
+              message: `Hi, I'm interested in your item: "${item.title}" for $${item.price}`
+            })
+          });
+          
+          if (!response.ok) {
+            throw new Error('Failed to send initial message');
+          }
+        } catch (err) {
+          console.error('Error starting chat:', err);
+        }
+      };
     
     // Add this function to handle chat messages
     const handleChatMessage = (chatId, message) => {
@@ -126,26 +125,49 @@ function App() {
     const handleLogin = (userData) => {
         setUser(userData);
         
+        // Store credentials for API calls
+        setCredentials(btoa(`${userData.username}:${userData.password}`));
+        
         // Navigate to home page after login
         setCurrentPage('home');
         
-        // If you want to remember the user between page reloads (when "remember me" is checked)
+        // Store in localStorage if "remember me" is checked
         if (userData.rememberMe) {
-            localStorage.setItem('user', JSON.stringify(userData));
+          localStorage.setItem('user', JSON.stringify(userData));
+          localStorage.setItem('credentials', btoa(`${userData.username}:${userData.password}`));
         }
-    };
+      };
 
-    const handleLogout = () => {
-        // Clear user data from state
-        setUser(null);
+      useEffect(() => {
+        // Check if user is saved in localStorage
+        const savedUser = localStorage.getItem('user');
+        const savedCredentials = localStorage.getItem('credentials');
         
-        // Clear user data from storage
+        if (savedUser && savedCredentials) {
+          setUser(JSON.parse(savedUser));
+          setCredentials(savedCredentials);
+        } else {
+          // If no saved user, redirect to login page
+          setCurrentPage('login');
+        }
+        setIsLoading(false);
+      }, []);
+      
+      const handleLogout = () => {
+        // Clear user data
+        setUser(null);
+        setCredentials(null);
+        
+        // Clear localStorage
         localStorage.removeItem('user');
+        localStorage.removeItem('credentials');
         
         // Navigate to login page
         setCurrentPage('login');
-    };
+      };
+      
 
+    
     const renderContent = () => {
         // Show loading indicator while checking auth status
         if (isLoading) {
@@ -202,6 +224,7 @@ function App() {
                         onCloseChat={handleCloseChat}
                         onChatMessage={handleChatMessage}
                         user={user}
+                        credentials={credentials}
                     />
                 );
             default:

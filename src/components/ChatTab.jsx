@@ -1,113 +1,247 @@
 // src/components/ChatTab.jsx
-import React, { useState } from 'react';
-import ChatWindow from './ChatWindow';
-import './ChatTab.css';
+import React, { useState, useEffect } from 'react';
+import './ChatTab.css'; // You'll need to create this CSS file
 
-function ChatTab({ chats, onCloseChat }) {
-    const [activeChat, setActiveChat] = useState(null);
-    
-    const handleChatSelect = (chatId) => {
-        const selected = chats.find(chat => chat.id === chatId);
-        setActiveChat(selected);
-    };
-    
-    const handleCloseActiveChat = () => {
-        setActiveChat(null);
-    };
-    
-    // Get the last message from each chat for preview
-    const getLastMessage = (messages) => {
-        if (!messages || messages.length === 0) return "No messages yet";
-        const lastMsg = messages[messages.length - 1];
-        return lastMsg.sender === 'user' ? 
-            `You: ${lastMsg.text}` : 
-            `Seller: ${lastMsg.text}`;
-    };
-    
-    // Format timestamp for chat list
-    const formatTime = (date) => {
-        if (!date) return '';
-        
-        const now = new Date();
-        const messageDate = new Date(date);
-        
-        // If today, show time
-        if (messageDate.toDateString() === now.toDateString()) {
-            return messageDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+function ChatTab({ user }) {
+  const [messages, setMessages] = useState([]);
+  const [newMessage, setNewMessage] = useState('');
+  const [receiver, setReceiver] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+  const [activeChat, setActiveChat] = useState(null);
+
+  // Fetch messages when component mounts
+  useEffect(() => {
+    if (user) {
+      fetchMessages();
+    }
+  }, [user]);
+
+  const fetchMessages = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const credentials = btoa(`${user.username}:${user.password}`);
+      const response = await fetch('http://localhost:3000/chat/messages', {
+        headers: {
+          'Authorization': `Basic ${credentials}`
         }
-        
-        // If within last 7 days, show day name
-        const daysAgo = Math.floor((now - messageDate) / (1000 * 60 * 60 * 24));
-        if (daysAgo < 7) {
-            return messageDate.toLocaleDateString([], { weekday: 'short' });
-        }
-        
-        // Otherwise show date
-        return messageDate.toLocaleDateString([], { month: 'short', day: 'numeric' });
-    };
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to fetch messages');
+      }
+      
+      const data = await response.json();
+      setMessages(data);
+    } catch (err) {
+      console.error('Error fetching messages:', err);
+      setError('Failed to load messages. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const sendMessage = async () => {
+    if (!newMessage.trim() || !receiver.trim()) {
+      return;
+    }
     
-    return (
-        <div className="chat-tab">
-            <h2>Your Conversations</h2>
-            
-            {chats.length === 0 ? (
-                <div className="no-chats">
-                    <div className="no-chats-icon">💬</div>
-                    <p>You don't have any conversations yet.</p>
-                    <p className="no-chats-subtitle">Connect with sellers to start chatting!</p>
-                </div>
-            ) : (
-                <div className="chat-list">
-                    {chats.map(chat => {
-                        const lastMessage = chat.messages[chat.messages.length - 1];
-                        const lastMessageTime = lastMessage ? lastMessage.timestamp : null;
-                        
-                        return (
-                            <div 
-                                key={chat.id}
-                                className={`chat-item ${activeChat && activeChat.id === chat.id ? 'active' : ''}`}
-                                onClick={() => handleChatSelect(chat.id)}
-                            >
-                                <div className="chat-item-avatar">
-                                    {chat.item.title.charAt(0).toUpperCase()}
-                                </div>
-                                <div className="chat-item-content">
-                                    <div className="chat-item-header">
-                                        <span className="chat-item-title">{chat.item.title}</span>
-                                        <span className="chat-item-time">{formatTime(lastMessageTime)}</span>
-                                    </div>
-                                    <div className="chat-item-message">
-                                        {getLastMessage(chat.messages)}
-                                    </div>
-                                </div>
-                                <button 
-                                    className="chat-item-close" 
-                                    onClick={(e) => {
-                                        e.stopPropagation(); // Prevent triggering the parent onClick
-                                        onCloseChat(chat.id);
-                                    }}
-                                    title="Close conversation"
-                                >
-                                    ×
-                                </button>
-                            </div>
-                        );
-                    })}
-                </div>
-            )}
-            
-            {activeChat && (
-                <ChatWindow 
-                    seller="Item Owner"
-                    item={activeChat.item}
-                    messages={activeChat.messages}
-                    chatId={activeChat.id}
-                    onClose={handleCloseActiveChat}
-                    isEmbedded={true}
-                />
-            )}
+    setLoading(true);
+    setError(null);
+    try {
+      const credentials = btoa(`${user.username}:${user.password}`);
+      const response = await fetch('http://localhost:3000/chat/send', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Basic ${credentials}`
+        },
+        body: JSON.stringify({
+          receiver: receiver,
+          message: newMessage
+        })
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to send message');
+      }
+      
+      // Clear the input
+      setNewMessage('');
+      
+      // Refresh messages
+      fetchMessages();
+    } catch (err) {
+      console.error('Error sending message:', err);
+      setError('Failed to send message. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const replyToMessage = async (messageIndex, replyText) => {
+    if (!replyText.trim()) {
+      return;
+    }
+    
+    setLoading(true);
+    setError(null);
+    try {
+      const credentials = btoa(`${user.username}:${user.password}`);
+      const response = await fetch('http://localhost:3000/chat/reply', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Basic ${credentials}`
+        },
+        body: JSON.stringify({
+          messageIndex: messageIndex,
+          reply: replyText
+        })
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to send reply');
+      }
+      
+      // Clear the input
+      setNewMessage('');
+      
+      // Refresh messages
+      fetchMessages();
+    } catch (err) {
+      console.error('Error sending reply:', err);
+      setError('Failed to send reply. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="chat-tab">
+      <h2>Your Messages</h2>
+      
+      {error && <div className="error-message">{error}</div>}
+      
+      <div className="chat-container">
+        <div className="chat-sidebar">
+          <h3>Conversations</h3>
+          {loading && <div className="loading-spinner"></div>}
+          
+          {/* Group messages by sender */}
+          {messages.length > 0 ? (
+            <ul className="chat-list">
+              {Array.from(new Set(messages.map(msg => msg.senderName))).map(sender => (
+                <li 
+                  key={sender} 
+                  className={`chat-item ${activeChat === sender ? 'active' : ''}`}
+                  onClick={() => setActiveChat(sender)}
+                >
+                  <div className="chat-item-content">
+                    <span className="chat-item-name">{sender}</span>
+                    <span className="chat-item-preview">
+                      {messages.filter(msg => msg.senderName === sender)[0].message.substring(0, 20)}...
+                    </span>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <div className="no-messages">
+              {loading ? 'Loading messages...' : 'No messages yet'}
+            </div>
+          )}
+          
+          <div className="new-chat-form">
+            <h4>Send New Message</h4>
+            <input
+              type="text"
+              placeholder="Recipient username"
+              value={receiver}
+              onChange={(e) => setReceiver(e.target.value)}
+              className="recipient-input"
+            />
+          </div>
         </div>
-    );
+        
+        <div className="chat-content">
+          {activeChat ? (
+            <>
+              <div className="chat-header">
+                <h3>Chat with {activeChat}</h3>
+              </div>
+              
+              <div className="messages-container">
+                {messages
+                  .filter(msg => msg.senderName === activeChat)
+                  .map((msg, index) => (
+                    <div key={index} className="message">
+                      <div className="message-header">
+                        <span className="message-sender">{msg.senderName}</span>
+                        <span className="message-time">
+                          {new Date(msg.timestamp || Date.now()).toLocaleString()}
+                        </span>
+                      </div>
+                      <div className="message-body">{msg.message}</div>
+                    </div>
+                  ))}
+              </div>
+              
+              <div className="message-input-container">
+                <textarea
+                  placeholder="Type your message..."
+                  value={newMessage}
+                  onChange={(e) => setNewMessage(e.target.value)}
+                  className="message-input"
+                />
+                <button 
+                  onClick={() => replyToMessage(
+                    messages.findIndex(msg => msg.senderName === activeChat),
+                    newMessage
+                  )}
+                  disabled={loading || !newMessage.trim()}
+                  className="send-button"
+                >
+                  {loading ? 'Sending...' : 'Reply'}
+                </button>
+              </div>
+            </>
+          ) : (
+            <div className="no-chat-selected">
+              <p>Select a conversation from the sidebar or start a new one</p>
+            </div>
+          )}
+          
+          {!activeChat && (
+            <div className="new-message-container">
+              <textarea
+                placeholder="Type your message..."
+                value={newMessage}
+                onChange={(e) => setNewMessage(e.target.value)}
+                className="message-input"
+              />
+              <button 
+                onClick={sendMessage}
+                disabled={loading || !newMessage.trim() || !receiver.trim()}
+                className="send-button"
+              >
+                {loading ? 'Sending...' : 'Send Message'}
+              </button>
+            </div>
+          )}
+        </div>
+      </div>
+      
+      <button 
+        onClick={fetchMessages} 
+        disabled={loading}
+        className="refresh-button"
+      >
+        {loading ? 'Refreshing...' : 'Refresh Messages'}
+      </button>
+    </div>
+  );
 }
 
 export default ChatTab;
