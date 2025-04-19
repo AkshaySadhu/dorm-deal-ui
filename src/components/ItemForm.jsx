@@ -58,7 +58,7 @@ function ItemForm({ onRefresh, editingItem, onCancelEdit, user }) {
             description,
             price: parseFloat(price),
             category,
-            userId: user?.id || '',           // <- owner (internal)
+            owner: user.username,           // <- owner (internal)
             username: user?.username || ''
         };
         console.log("Item data being submitted:", itemData);
