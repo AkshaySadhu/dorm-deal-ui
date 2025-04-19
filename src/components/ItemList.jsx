@@ -1,8 +1,8 @@
 // src/components/ItemList.jsx
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, user } from "react";
 import ChatWindow from "./ChatWindow"; // Import the ChatWindow component
 
-function ItemList({ items, onEdit, onRefresh, onStartChat }) { // Add onStartChat prop
+function ItemList({ items, onEdit, onRefresh, onStartChat, user }) { // Add onStartChat prop
     const [selectedCategory, setSelectedCategory] = useState('all');
     const [sortOption, setSortOption] = useState('default');
     const [hoveredItem, setHoveredItem] = useState(null);
@@ -10,6 +10,7 @@ function ItemList({ items, onEdit, onRefresh, onStartChat }) { // Add onStartCha
     const [priceRange, setPriceRange] = useState({ min: '', max: '' });
     const [showPriceFilter, setShowPriceFilter] = useState(false);
     const objectUrlsRef = useRef([]);
+    console.log("Current user in ItemList:", user.username);
     
     // Add chat state
     const [showChat, setShowChat] = useState(false);
@@ -318,31 +319,33 @@ useEffect(() => {
                                         {truncateDescription(item.description)}
                                     </div>
                                 </div>
-                                
                                 <div className={`item-actions ${hoveredItem === item.id ? 'visible' : ''}`}>
-                                    <button 
-                                        className="connect-seller-btn"
-                                        onClick={() => handleOpenChat(item)}
-                                    >
-                                        Chat with Seller
-                                    </button>
-                                    <div className="action-buttons">
-                                        <button 
-                                            className="edit-btn" 
-                                            onClick={() => onEdit(item)}
-                                            title="Edit"
-                                        >
-                                            ✏️
-                                        </button>
-                                        <button 
-                                            className="delete-btn" 
-                                            onClick={() => handleDelete(item.id)}
-                                            title="Delete"
-                                        >
-                                            🗑️
-                                        </button>
-                                    </div>
-                                </div>
+    {/* Only show chat button if the current user is not the seller */}
+    {user.username && item.username && user.username !== item.username && (
+        <button 
+            className="connect-seller-btn"
+            onClick={() => handleOpenChat(item)}
+        >
+            Chat with Seller
+        </button>
+    )}
+    <div className="action-buttons">
+        <button 
+            className="edit-btn" 
+            onClick={() => onEdit(item)}
+            title="Edit"
+        >
+            ✏️
+        </button>
+        <button 
+            className="delete-btn" 
+            onClick={() => handleDelete(item.id)}
+            title="Delete"
+        >
+            🗑️
+        </button>
+    </div>
+</div>
                             </div>
                         </li>
                     ))}
