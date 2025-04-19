@@ -6,7 +6,7 @@ function NavigationBar({ onNavigate, unreadChats = 0, onLogout, username }) {
     return (
         <nav className="navbar">
             <div className="navbar-brand">
-                <h1 onClick={() => onNavigate('home')}>Marketplace</h1>
+                <h1 onClick={() => onNavigate('home')}>DormDeal</h1>
             </div>
             <div className="navbar-links">
                 <button 
