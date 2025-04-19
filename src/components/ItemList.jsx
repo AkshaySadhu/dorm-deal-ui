@@ -1,5 +1,5 @@
 // src/components/ItemList.jsx
-import React, { useState, useEffect, useRef, user } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import ChatWindow from "./ChatWindow"; // Import the ChatWindow component
 
 function ItemList({ items, onEdit, onRefresh, onStartChat, user }) { // Add onStartChat prop
@@ -11,7 +11,7 @@ function ItemList({ items, onEdit, onRefresh, onStartChat, user }) { // Add onSt
     const [showPriceFilter, setShowPriceFilter] = useState(false);
     const objectUrlsRef = useRef([]);
     console.log("Current user in ItemList:", user.username);
-    
+
     // Add chat state
     const [showChat, setShowChat] = useState(false);
     const [selectedItem, setSelectedItem] = useState(null);
@@ -56,10 +56,15 @@ useEffect(() => {
     // Check for either username or owner property
     console.log("Full item object:", JSON.stringify(item, null, 2));
   
-    const sellerUsername = item.username || item.owner;
+    const sellerUsername = item.owner;
 
     console.log("Seller username found:", sellerUsername);
-    
+
+    if (sellerUsername == user.username) {
+        console.error("Can't start chat: You can't chat with yourself");
+        return;
+    }
+
     if (!sellerUsername) {
       console.error("Can't start chat: Item has no seller username");
       return;
@@ -321,8 +326,8 @@ useEffect(() => {
                                 </div>
                                 <div className={`item-actions ${hoveredItem === item.id ? 'visible' : ''}`}>
     {/* Only show chat button if the current user is not the seller */}
-    {user.username && item.username && user.username !== item.username && (
-        <button 
+    {user.username && item.owner && user.username !== item.owner && (
+        <button
             className="connect-seller-btn"
             onClick={() => handleOpenChat(item)}
         >
@@ -330,15 +335,15 @@ useEffect(() => {
         </button>
     )}
     <div className="action-buttons">
-        <button 
-            className="edit-btn" 
+        <button
+            className="edit-btn"
             onClick={() => onEdit(item)}
             title="Edit"
         >
             ✏️
         </button>
-        <button 
-            className="delete-btn" 
+        <button
+            className="delete-btn"
             onClick={() => handleDelete(item.id)}
             title="Delete"
         >
