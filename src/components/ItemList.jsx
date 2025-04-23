@@ -1,8 +1,8 @@
-// src/components/ItemList.jsx
+
 import React, { useState, useEffect, useRef } from "react";
 import ChatWindow from "./ChatWindow"; // Import the ChatWindow component
 
-function ItemList({ items, onEdit, onRefresh, onStartChat }) { // Add onStartChat prop
+function ItemList({ items, onEdit, onRefresh, onStartChat, user }) { // Add onStartChat prop
     const [selectedCategory, setSelectedCategory] = useState('all');
     const [sortOption, setSortOption] = useState('default');
     const [hoveredItem, setHoveredItem] = useState(null);
@@ -10,13 +10,15 @@ function ItemList({ items, onEdit, onRefresh, onStartChat }) { // Add onStartCha
     const [priceRange, setPriceRange] = useState({ min: '', max: '' });
     const [showPriceFilter, setShowPriceFilter] = useState(false);
     const objectUrlsRef = useRef([]);
-    
-    
+    console.log("Current user in ItemList:", user.username);
+
     const [showChat, setShowChat] = useState(false);
     const [selectedItem, setSelectedItem] = useState(null);
     
+    // Cleanup function for blob URLs to prevent memory leaks
     useEffect(() => {
         return () => {
+            // Clean up any created object URLs when component unmounts
             objectUrlsRef.current.forEach(url => {
                 URL.revokeObjectURL(url);
             });
@@ -30,6 +32,7 @@ useEffect(() => {
         username: item.username 
     })));
 }, [items]);
+
 
     const categories = ['all', ...new Set(items.map(item => item.category))];
 
@@ -47,20 +50,41 @@ useEffect(() => {
         }
     };
     
-    const handleOpenChat = (item) => {
-        if (onStartChat) {
-            onStartChat(item);
-        } else {
-            setSelectedItem(item);
-            setShowChat(true);
-        }
-    };
+  const handleOpenChat = (item) => {
+    // Check for either username or owner property
+    console.log("Full item object:", JSON.stringify(item, null, 2));
+  
+    const sellerUsername = item.owner;
+
+    console.log("Seller username found:", sellerUsername);
+
+    if (sellerUsername == user.username) {
+        console.error("Can't start chat: You can't chat with yourself");
+        return;
+    }
+
+    if (!sellerUsername) {
+      console.error("Can't start chat: Item has no seller username");
+      return;
+    }
     
+    if (onStartChat) {
+      // Use the App's chat system to start a chat with the seller
+      onStartChat({...item, username: sellerUsername});
+    } else {
+      // Local chat fallback
+      setSelectedItem({...item, username: sellerUsername});
+      setShowChat(true);
+    }
+  };
+    
+    // Handle closing chat
     const handleCloseChat = () => {
         setShowChat(false);
         setSelectedItem(null);
     };
 
+    // Filter items by selected category, search query, and price range
     const filteredItems = items.filter(item => {
         const matchesCategory = selectedCategory === 'all' || item.category === selectedCategory;
         
@@ -75,6 +99,7 @@ useEffect(() => {
         return matchesCategory && matchesSearch && matchesMinPrice && matchesMaxPrice;
     });
 
+    // Sort items based on the selected option
     const sortedItems = [...filteredItems].sort((a, b) => {
         switch (sortOption) {
             case 'price-low':
@@ -90,6 +115,7 @@ useEffect(() => {
         }
     });
 
+    // Function to truncate description
     const truncateDescription = (text, maxLength = 100) => {
         if (text.length <= maxLength) return text;
         return text.substr(0, maxLength) + '...';
@@ -294,37 +320,42 @@ useEffect(() => {
                                         {truncateDescription(item.description)}
                                     </div>
                                 </div>
-                                
                                 <div className={`item-actions ${hoveredItem === item.id ? 'visible' : ''}`}>
-                                    <button 
-                                        className="connect-seller-btn"
-                                        onClick={() => handleOpenChat(item)}
-                                    >
-                                        Chat with Seller
-                                    </button>
-                                    <div className="action-buttons">
-                                        <button 
-                                            className="edit-btn" 
-                                            onClick={() => onEdit(item)}
-                                            title="Edit"
-                                        >
-                                            ✏️
-                                        </button>
-                                        <button 
-                                            className="delete-btn" 
-                                            onClick={() => handleDelete(item.id)}
-                                            title="Delete"
-                                        >
-                                            🗑️
-                                        </button>
-                                    </div>
-                                </div>
+    {/* Only show chat button if the current user is not the seller */}
+    {user.username && item.owner && user.username !== item.owner && (
+        <button 
+            className="connect-seller-btn"
+            onClick={() => handleOpenChat(item)}
+        >
+            Chat with Seller
+        </button>
+    )}
+    <div className="action-buttons">
+    {user.username && item.owner && user.username === item.owner && (
+        <button 
+            className="edit-btn" 
+            onClick={() => onEdit(item)}
+            title="Edit"
+        >
+            ✏️
+        </button>)}
+        {user.username && item.owner && user.username === item.owner && (
+        <button 
+            className="delete-btn" 
+            onClick={() => handleDelete(item.id)}
+            title="Delete"
+        >
+            🗑️
+        </button>)}
+    </div>
+</div>
                             </div>
                         </li>
                     ))}
                 </ul>
             )}
             
+            {/* Local Chat window (only show if onStartChat is not provided) */}
             {!onStartChat && showChat && selectedItem && (
                 <ChatWindow 
                     seller={selectedItem.username || "Item Owner"}

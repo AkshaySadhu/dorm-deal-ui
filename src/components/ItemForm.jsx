@@ -1,4 +1,4 @@
-// src/components/ItemForm.jsx
+
 import { useState, useEffect } from 'react';
 import React from "react";
 
@@ -46,37 +46,30 @@ function ItemForm({ onRefresh, editingItem, onCancelEdit, user }) {
 
         
         e.preventDefault();
-        
-        // Clear any existing messages
+
         setShowSuccess(false);
         setShowError(false);
-        
-        
-        
+
         const itemData = {
             title,
             description,
             price: parseFloat(price),
             category,
-            userId: user?.id || '',           
+            owner: user.username,
             username: user?.username || ''
         };
         console.log("Item data being submitted:", itemData);
-        
- 
+
         if (image) {
             const base64Image = await convertToBase64(image);
             itemData.image = base64Image;
         } else if (editingItem && editingItem.image && !previewUrl) {
-           
             itemData.image = null;
         } else if (editingItem && editingItem.image) {
-          
             itemData.image = editingItem.image;
         }
 
         if (editingItem) {
-
 fetch(`http://localhost:3000/items/${editingItem.id}`, {
     method: 'PUT',
     headers: { 'Content-Type': 'application/json' },
@@ -90,26 +83,22 @@ fetch(`http://localhost:3000/items/${editingItem.id}`, {
     })
     .then(data => {
         console.log("Item updated: ", data);
-        
 
         setSuccessMessage("Item updated successfully!");
         setShowSuccess(true);
-        
-      
-        onRefresh();
-        
-        setTimeout(() => {
 
+        onRefresh();
+
+        setTimeout(() => {
             setShowSuccess(false);
             onCancelEdit();
-        }, 2000); 
+        }, 2000);
     })
     .catch(err => {
         console.error("Error updating item: ", err);
-
         setErrorMessage(`Failed to update item: ${err.message}`);
         setShowError(true);
-        
+
         setTimeout(() => {
             setShowError(false);
         }, 5000);
@@ -117,6 +106,7 @@ fetch(`http://localhost:3000/items/${editingItem.id}`, {
 
             
         } else {
+            // Create new item using POST /items
             fetch("http://localhost:3000/items", {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -131,15 +121,18 @@ fetch(`http://localhost:3000/items/${editingItem.id}`, {
                 .then(data => {
                     console.log("Item created: ", data);
                     
+                    // Show success message
                     setSuccessMessage("Item added successfully!");
                     setShowSuccess(true);
                     
+                    // Hide success message after 3 seconds
                     setTimeout(() => {
                         setShowSuccess(false);
                     }, 3000);
                     
                     onRefresh();
                     
+                    // Clear the form
                     setTitle('');
                     setDescription('');
                     setPrice('');
@@ -150,9 +143,11 @@ fetch(`http://localhost:3000/items/${editingItem.id}`, {
                 .catch(err => {
                     console.error("Error creating item: ", err);
                     
+                    // Show error message
                     setErrorMessage(`Failed to add item: ${err.message}`);
                     setShowError(true);
                     
+                    // Hide error message after 5 seconds
                     setTimeout(() => {
                         setShowError(false);
                     }, 5000);
@@ -165,6 +160,7 @@ fetch(`http://localhost:3000/items/${editingItem.id}`, {
             const selectedFile = e.target.files[0];
             setImage(selectedFile);
             
+            // Create preview URL for the selected image
             const reader = new FileReader();
             reader.onload = () => {
                 setPreviewUrl(reader.result);
@@ -178,11 +174,13 @@ fetch(`http://localhost:3000/items/${editingItem.id}`, {
         setPreviewUrl('');
     };
 
+    // Helper function to convert a File to a base64 string.
     const convertToBase64 = (file) => {
         return new Promise((resolve, reject) => {
             const reader = new FileReader();
             reader.readAsDataURL(file);
             reader.onload = () => {
+                // Extract just the base64 data (without the data URI prefix)
                 const base64String = reader.result.split(',')[1];
                 resolve(base64String);
             };
@@ -194,6 +192,7 @@ fetch(`http://localhost:3000/items/${editingItem.id}`, {
         <form onSubmit={handleSubmit} className="item-form">
             <h2>{editingItem ? "Update Item" : "Add New Item"}</h2>
             
+            {/* Success Alert */}
             {showSuccess && (
                 <div className="alert success-alert">
                     <span className="alert-icon">✓</span>
@@ -201,6 +200,7 @@ fetch(`http://localhost:3000/items/${editingItem.id}`, {
                 </div>
             )}
             
+            {/* Error Alert */}
             {showError && (
                 <div className="alert error-alert">
                     <span className="alert-icon">⚠</span>
