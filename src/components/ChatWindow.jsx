@@ -1,4 +1,4 @@
-// src/components/ChatWindow.jsx
+
 import React, { useState, useEffect, useRef } from 'react';
 import './ChatWindow.css';
 
@@ -13,7 +13,7 @@ function ChatWindow({ seller, item, onClose }) {
     const [newMessage, setNewMessage] = useState('');
     const messagesEndRef = useRef(null);
 
-    // Auto-scroll to bottom of messages
+
     useEffect(() => {
         messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
     }, [messages]);
@@ -22,7 +22,7 @@ function ChatWindow({ seller, item, onClose }) {
         e.preventDefault();
         if (!newMessage.trim()) return;
 
-        // Add user message
+
         const userMessage = {
             sender: 'user',
             text: newMessage,
@@ -32,7 +32,6 @@ function ChatWindow({ seller, item, onClose }) {
         setMessages(prev => [...prev, userMessage]);
         setNewMessage('');
 
-        // Simulate seller response (in a real app, this would be handled by your backend)
         setTimeout(() => {
             const sellerResponse = {
                 sender: 'seller',
@@ -43,7 +42,6 @@ function ChatWindow({ seller, item, onClose }) {
         }, 1000);
     };
 
-    // Format timestamp
     const formatTime = (date) => {
         return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
     };

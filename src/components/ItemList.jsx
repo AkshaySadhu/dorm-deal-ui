@@ -11,21 +11,18 @@ function ItemList({ items, onEdit, onRefresh, onStartChat }) { // Add onStartCha
     const [showPriceFilter, setShowPriceFilter] = useState(false);
     const objectUrlsRef = useRef([]);
     
-    // Add chat state
+    
     const [showChat, setShowChat] = useState(false);
     const [selectedItem, setSelectedItem] = useState(null);
     
-    // Cleanup function for blob URLs to prevent memory leaks
     useEffect(() => {
         return () => {
-            // Clean up any created object URLs when component unmounts
             objectUrlsRef.current.forEach(url => {
                 URL.revokeObjectURL(url);
             });
         };
     }, []);
 
-    // Add this inside your ItemList component, near the other useEffect hooks
 useEffect(() => {
     console.log("Items with usernames:", items.map(item => ({ 
         id: item.id, 
@@ -34,7 +31,6 @@ useEffect(() => {
     })));
 }, [items]);
 
-    // Extract unique categories from items
     const categories = ['all', ...new Set(items.map(item => item.category))];
 
     const handleDelete = (id) => {
@@ -51,26 +47,20 @@ useEffect(() => {
         }
     };
     
-    // Handle opening chat with seller
     const handleOpenChat = (item) => {
-        // Check if we should use our own chat or App's chat system
         if (onStartChat) {
-            // Use the chat system from App component
             onStartChat(item);
         } else {
-            // Use local chat
             setSelectedItem(item);
             setShowChat(true);
         }
     };
     
-    // Handle closing chat
     const handleCloseChat = () => {
         setShowChat(false);
         setSelectedItem(null);
     };
 
-    // Filter items by selected category, search query, and price range
     const filteredItems = items.filter(item => {
         const matchesCategory = selectedCategory === 'all' || item.category === selectedCategory;
         
@@ -85,7 +75,6 @@ useEffect(() => {
         return matchesCategory && matchesSearch && matchesMinPrice && matchesMaxPrice;
     });
 
-    // Sort items based on the selected option
     const sortedItems = [...filteredItems].sort((a, b) => {
         switch (sortOption) {
             case 'price-low':
@@ -101,7 +90,6 @@ useEffect(() => {
         }
     });
 
-    // Function to truncate description
     const truncateDescription = (text, maxLength = 100) => {
         if (text.length <= maxLength) return text;
         return text.substr(0, maxLength) + '...';
@@ -274,11 +262,9 @@ useEffect(() => {
                                                 if (typeof item.image === 'string') {
                                                     return `data:image/jpeg;base64,${item.image}`;
                                                 } else {
-                                                    // Create a blob URL for binary data
                                                     const bytes = Object.values(item.image).map(byte => byte);
                                                     const blob = new Blob([new Uint8Array(bytes)], { type: 'image/jpeg' });
                                                     const url = URL.createObjectURL(blob);
-                                                    // Store URL for cleanup
                                                     objectUrlsRef.current.push(url);
                                                     return url;
                                                 }
@@ -339,7 +325,6 @@ useEffect(() => {
                 </ul>
             )}
             
-            {/* Local Chat window (only show if onStartChat is not provided) */}
             {!onStartChat && showChat && selectedItem && (
                 <ChatWindow 
                     seller={selectedItem.username || "Item Owner"}
