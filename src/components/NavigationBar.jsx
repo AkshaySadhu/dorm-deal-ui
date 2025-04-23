@@ -1,4 +1,4 @@
-// src/components/NavigationBar.jsx
+
 import React, { useState } from 'react';
 import './NavigationBar.css';
 
