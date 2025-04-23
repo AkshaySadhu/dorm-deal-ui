@@ -1,8 +1,8 @@
-// src/components/ItemList.jsx
-import React, { useState, useEffect, useRef } from "react";
-import ChatWindow from "./ChatWindow"; // Import the ChatWindow component
 
-function ItemList({ items, onEdit, onRefresh, onStartChat, user }) { // Add onStartChat prop
+import React, { useState, useEffect, useRef } from "react";
+import ChatWindow from "./ChatWindow";
+
+function ItemList({ items, onEdit, onRefresh, onStartChat, user }) {
     const [selectedCategory, setSelectedCategory] = useState('all');
     const [sortOption, setSortOption] = useState('default');
     const [hoveredItem, setHoveredItem] = useState(null);
@@ -12,21 +12,17 @@ function ItemList({ items, onEdit, onRefresh, onStartChat, user }) { // Add onSt
     const objectUrlsRef = useRef([]);
     console.log("Current user in ItemList:", user.username);
 
-    // Add chat state
     const [showChat, setShowChat] = useState(false);
     const [selectedItem, setSelectedItem] = useState(null);
-    
-    // Cleanup function for blob URLs to prevent memory leaks
+
     useEffect(() => {
         return () => {
-            // Clean up any created object URLs when component unmounts
             objectUrlsRef.current.forEach(url => {
                 URL.revokeObjectURL(url);
             });
         };
     }, []);
 
-    // Add this inside your ItemList component, near the other useEffect hooks
 useEffect(() => {
     console.log("Items with usernames:", items.map(item => ({ 
         id: item.id, 
@@ -35,7 +31,7 @@ useEffect(() => {
     })));
 }, [items]);
 
-    // Extract unique categories from items
+
     const categories = ['all', ...new Set(items.map(item => item.category))];
 
     const handleDelete = (id) => {
@@ -53,7 +49,6 @@ useEffect(() => {
     };
     
   const handleOpenChat = (item) => {
-    // Check for either username or owner property
     console.log("Full item object:", JSON.stringify(item, null, 2));
   
     const sellerUsername = item.owner;
@@ -71,22 +66,18 @@ useEffect(() => {
     }
     
     if (onStartChat) {
-      // Use the App's chat system to start a chat with the seller
       onStartChat({...item, username: sellerUsername});
     } else {
-      // Local chat fallback
       setSelectedItem({...item, username: sellerUsername});
       setShowChat(true);
     }
   };
-    
-    // Handle closing chat
+
     const handleCloseChat = () => {
         setShowChat(false);
         setSelectedItem(null);
     };
 
-    // Filter items by selected category, search query, and price range
     const filteredItems = items.filter(item => {
         const matchesCategory = selectedCategory === 'all' || item.category === selectedCategory;
         
@@ -101,7 +92,6 @@ useEffect(() => {
         return matchesCategory && matchesSearch && matchesMinPrice && matchesMaxPrice;
     });
 
-    // Sort items based on the selected option
     const sortedItems = [...filteredItems].sort((a, b) => {
         switch (sortOption) {
             case 'price-low':
@@ -117,7 +107,6 @@ useEffect(() => {
         }
     });
 
-    // Function to truncate description
     const truncateDescription = (text, maxLength = 100) => {
         if (text.length <= maxLength) return text;
         return text.substr(0, maxLength) + '...';
@@ -290,11 +279,9 @@ useEffect(() => {
                                                 if (typeof item.image === 'string') {
                                                     return `data:image/jpeg;base64,${item.image}`;
                                                 } else {
-                                                    // Create a blob URL for binary data
                                                     const bytes = Object.values(item.image).map(byte => byte);
                                                     const blob = new Blob([new Uint8Array(bytes)], { type: 'image/jpeg' });
                                                     const url = URL.createObjectURL(blob);
-                                                    // Store URL for cleanup
                                                     objectUrlsRef.current.push(url);
                                                     return url;
                                                 }
@@ -325,7 +312,7 @@ useEffect(() => {
                                     </div>
                                 </div>
                                 <div className={`item-actions ${hoveredItem === item.id ? 'visible' : ''}`}>
-    {/* Only show chat button if the current user is not the seller */}
+    {}
     {user.username && item.owner && user.username !== item.owner && (
         <button 
             className="connect-seller-btn"
@@ -359,7 +346,7 @@ useEffect(() => {
                 </ul>
             )}
             
-            {/* Local Chat window (only show if onStartChat is not provided) */}
+            {}
             {!onStartChat && showChat && selectedItem && (
                 <ChatWindow 
                     seller={selectedItem.username || "Item Owner"}

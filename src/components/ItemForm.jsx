@@ -46,38 +46,30 @@ function ItemForm({ onRefresh, editingItem, onCancelEdit, user }) {
 
         
         e.preventDefault();
-        
-        // Clear any existing messages
+
         setShowSuccess(false);
         setShowError(false);
-        
-        
-        // Build item data; parse price as float.
+
         const itemData = {
             title,
             description,
             price: parseFloat(price),
             category,
-            owner: user.username,           // <- owner (internal)
+            owner: user.username,
             username: user?.username || ''
         };
         console.log("Item data being submitted:", itemData);
-        
-        // If an image file is selected, convert it to a base64 string.
+
         if (image) {
             const base64Image = await convertToBase64(image);
             itemData.image = base64Image;
         } else if (editingItem && editingItem.image && !previewUrl) {
-            // If editing and image was removed
             itemData.image = null;
         } else if (editingItem && editingItem.image) {
-            // Keep the existing image if not changed
             itemData.image = editingItem.image;
         }
 
         if (editingItem) {
-            // Update existing item using PUT /items/:id
-            // Update existing item using PUT /items/:id
 fetch(`http://localhost:3000/items/${editingItem.id}`, {
     method: 'PUT',
     headers: { 'Content-Type': 'application/json' },
@@ -91,28 +83,22 @@ fetch(`http://localhost:3000/items/${editingItem.id}`, {
     })
     .then(data => {
         console.log("Item updated: ", data);
-        
-        // Show success message
+
         setSuccessMessage("Item updated successfully!");
         setShowSuccess(true);
-        
-        // Call onRefresh to update the list in the background
+
         onRefresh();
-        
-        // Delay the redirect to allow the user to see the success message
+
         setTimeout(() => {
-            // Hide the message and redirect
             setShowSuccess(false);
             onCancelEdit();
-        }, 2000); // 2 seconds delay before redirect
+        }, 2000);
     })
     .catch(err => {
         console.error("Error updating item: ", err);
-        // Show error message
         setErrorMessage(`Failed to update item: ${err.message}`);
         setShowError(true);
-        
-        // Hide error message after 5 seconds
+
         setTimeout(() => {
             setShowError(false);
         }, 5000);

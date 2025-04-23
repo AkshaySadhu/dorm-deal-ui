@@ -1,4 +1,3 @@
-// src/components/LoginPage.jsx
 import React, { useState } from 'react';
 import './LoginPage.css';
 
@@ -11,11 +10,9 @@ function LoginPage({ onLogin }) {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
-    // Reset error state
+
     setError('');
-    
-    // Validate inputs
+
     if (!username.trim()) {
       setError('Please enter your username');
       return;
@@ -25,8 +22,7 @@ function LoginPage({ onLogin }) {
       setError('Please enter your password');
       return;
     }
-    
-    // Show loading state
+
     setLoading(true);
     
     try {
@@ -43,12 +39,10 @@ function LoginPage({ onLogin }) {
       if (!response.ok) {
         throw new Error(data.error || 'Authentication failed');
       }
-      
-      // Pass the user data to the parent component
+
       const userData = {
         username: data.user?.username || username,
         rememberMe,
-        // Add any other user properties returned from your API
       };
       
       onLogin(userData);
