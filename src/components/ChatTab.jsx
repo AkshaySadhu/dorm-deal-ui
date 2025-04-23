@@ -1,6 +1,5 @@
-// src/components/ChatTab.jsx
 import React, { useState, useEffect } from 'react';
-import './ChatTab.css'; // You'll need to create this CSS file
+import './ChatTab.css';
 
 function ChatTab({ user }) {
   const [messages, setMessages] = useState([]);
@@ -10,7 +9,6 @@ function ChatTab({ user }) {
   const [error, setError] = useState(null);
   const [activeChat, setActiveChat] = useState(null);
 
-  // Fetch messages when component mounts
   useEffect(() => {
     if (user) {
       fetchMessages();
@@ -57,9 +55,7 @@ function ChatTab({ user }) {
       if (!response.ok) {
         throw new Error('Failed to send message');
       }
-      // Clear the input
       setNewMessage('');
-      // Refresh messages
       fetchMessages();
     } catch (err) {
       console.error('Error sending message:', err);
@@ -89,11 +85,9 @@ function ChatTab({ user }) {
       if (!response.ok) {
         throw new Error('Failed to send reply');
       }
-      
-      // Clear the input
+
       setNewMessage('');
-      
-      // Refresh messages
+
       fetchMessages();
     } catch (err) {
       console.error('Error sending reply:', err);
@@ -114,7 +108,7 @@ function ChatTab({ user }) {
           <h3>Conversations</h3>
           {loading && <div className="loading-spinner"></div>}
           
-          {/* Group messages by sender */}
+          {}
           {messages.length > 0 ? (
             <ul className="chat-list">
               {Array.from(new Set(messages.map(msg => msg.senderName))).map(sender => (
