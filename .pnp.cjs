@@ -29,7 +29,11 @@ const RAW_RUNTIME_STATE =
         "packageDependencies": [\
           ["react", "npm:18.3.1"],\
           ["react-dom", "virtual:2eedb38164ba403607b0db2ac18950b403401b5517eefdae23d27ee45aa76380f6d70ab63da97b12e964f25e7e3756b742a61cc0250bb445cdb490cfdbe9b67b#npm:18.3.1"],\
+<<<<<<< Updated upstream
           ["vite", "virtual:2eedb38164ba403607b0db2ac18950b403401b5517eefdae23d27ee45aa76380f6d70ab63da97b12e964f25e7e3756b742a61cc0250bb445cdb490cfdbe9b67b#npm:6.2.6"]\
+=======
+          ["vite", "virtual:2eedb38164ba403607b0db2ac18950b403401b5517eefdae23d27ee45aa76380f6d70ab63da97b12e964f25e7e3756b742a61cc0250bb445cdb490cfdbe9b67b#npm:6.3.2"]\
+>>>>>>> Stashed changes
         ],\
         "linkType": "SOFT"\
       }]\
@@ -676,7 +680,11 @@ const RAW_RUNTIME_STATE =
           ["dorm-deal-ui", "workspace:."],\
           ["react", "npm:18.3.1"],\
           ["react-dom", "virtual:2eedb38164ba403607b0db2ac18950b403401b5517eefdae23d27ee45aa76380f6d70ab63da97b12e964f25e7e3756b742a61cc0250bb445cdb490cfdbe9b67b#npm:18.3.1"],\
+<<<<<<< Updated upstream
           ["vite", "virtual:2eedb38164ba403607b0db2ac18950b403401b5517eefdae23d27ee45aa76380f6d70ab63da97b12e964f25e7e3756b742a61cc0250bb445cdb490cfdbe9b67b#npm:6.2.6"]\
+=======
+          ["vite", "virtual:2eedb38164ba403607b0db2ac18950b403401b5517eefdae23d27ee45aa76380f6d70ab63da97b12e964f25e7e3756b742a61cc0250bb445cdb490cfdbe9b67b#npm:6.3.2"]\
+>>>>>>> Stashed changes
         ],\
         "linkType": "SOFT"\
       }]\
@@ -1528,6 +1536,7 @@ const RAW_RUNTIME_STATE =
       }]\
     ]],\
     ["vite", [\
+<<<<<<< Updated upstream
       ["npm:6.2.6", {\
         "packageLocation": "../../.yarn/berry/cache/vite-npm-6.2.6-19e4bde6cc-10c0.zip/node_modules/vite/",\
         "packageDependencies": [\
@@ -1539,6 +1548,19 @@ const RAW_RUNTIME_STATE =
         "packageLocation": "./.yarn/__virtual__/vite-virtual-7e425c306c/3/.yarn/berry/cache/vite-npm-6.2.6-19e4bde6cc-10c0.zip/node_modules/vite/",\
         "packageDependencies": [\
           ["vite", "virtual:2eedb38164ba403607b0db2ac18950b403401b5517eefdae23d27ee45aa76380f6d70ab63da97b12e964f25e7e3756b742a61cc0250bb445cdb490cfdbe9b67b#npm:6.2.6"],\
+=======
+      ["npm:6.3.2", {\
+        "packageLocation": "../../.yarn/berry/cache/vite-npm-6.3.2-760f25041d-10c0.zip/node_modules/vite/",\
+        "packageDependencies": [\
+          ["vite", "npm:6.3.2"]\
+        ],\
+        "linkType": "SOFT"\
+      }],\
+      ["virtual:2eedb38164ba403607b0db2ac18950b403401b5517eefdae23d27ee45aa76380f6d70ab63da97b12e964f25e7e3756b742a61cc0250bb445cdb490cfdbe9b67b#npm:6.3.2", {\
+        "packageLocation": "./.yarn/__virtual__/vite-virtual-2a4d5530cd/3/.yarn/berry/cache/vite-npm-6.3.2-760f25041d-10c0.zip/node_modules/vite/",\
+        "packageDependencies": [\
+          ["vite", "virtual:2eedb38164ba403607b0db2ac18950b403401b5517eefdae23d27ee45aa76380f6d70ab63da97b12e964f25e7e3756b742a61cc0250bb445cdb490cfdbe9b67b#npm:6.3.2"],\
+>>>>>>> Stashed changes
           ["@types/jiti", null],\
           ["@types/less", null],\
           ["@types/lightningcss", null],\
@@ -1551,10 +1573,18 @@ const RAW_RUNTIME_STATE =
           ["@types/tsx", null],\
           ["@types/yaml", null],\
           ["esbuild", "npm:0.25.2"],\
+<<<<<<< Updated upstream
+=======
+          ["fdir", "virtual:c8807de691826868d9a774dfe20fb184997709c19896ccda6c1d382d679c7c2453bf893d9e0510372bd84566a8523db06ec721126eb95bb24e97992998e8a625#npm:6.4.3"],\
+>>>>>>> Stashed changes
           ["fsevents", "patch:fsevents@npm%3A2.3.3#optional!builtin<compat/fsevents>::version=2.3.3&hash=df0bf1"],\
           ["jiti", null],\
           ["less", null],\
           ["lightningcss", null],\
+<<<<<<< Updated upstream
+=======
+          ["picomatch", "npm:4.0.2"],\
+>>>>>>> Stashed changes
           ["postcss", "npm:8.5.3"],\
           ["rollup", "npm:4.40.0"],\
           ["sass", null],\
@@ -1562,6 +1592,10 @@ const RAW_RUNTIME_STATE =
           ["stylus", null],\
           ["sugarss", null],\
           ["terser", null],\
+<<<<<<< Updated upstream
+=======
+          ["tinyglobby", "npm:0.2.12"],\
+>>>>>>> Stashed changes
           ["tsx", null],\
           ["yaml", null]\
         ],\
